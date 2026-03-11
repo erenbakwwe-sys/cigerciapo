@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: menu
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required)
+    //   - category: string (required)
+    //   - description: string (optional)
+    //   - price: number (required, positive)
+    //   - image: string (required, url)
+    //
+    // Collection: orders
+    // Document ID: auto-generated
+    // Fields:
+    //   - table: string (required)
+    //   - items: list (required)
+    //   - total: number (required, positive)
+    //   - status: string (required, enum: pending, preparing, ready, delivered)
+    //   - createdAt: number (required)
+    //
+    // Collection: calls
+    // Document ID: auto-generated
+    // Fields:
+    //   - table: string (required)
+    //   - status: string (required, enum: active, resolved)
+    //   - createdAt: number (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function hasOnlyAllowedFields(allowedFields) {
+      return request.resource.data.keys().hasOnly(allowedFields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidMenuItem(data) {
+      return hasOnlyAllowedFields(['name', 'category', 'description', 'price', 'image']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.category is string && data.category.size() > 0 && data.category.size() < 50 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+             data.price is number && data.price >= 0 &&
+             data.image is string && data.image.size() < 1000000; // Allow up to ~1MB for base64 images
+    }
+
+    function isValidOrder(data) {
+      return hasOnlyAllowedFields(['table', 'items', 'total', 'status', 'createdAt', 'paymentMethod']) &&
+             data.table is string && data.table.size() > 0 && data.table.size() < 20 &&
+             data.items is list && data.items.size() > 0 && data.items.size() < 50 &&
+             data.total is number && data.total >= 0 &&
+             data.status in ['pending', 'preparing', 'ready', 'delivered'] &&
+             (!('paymentMethod' in data) || data.paymentMethod in ['cash', 'card', 'pos']) &&
+             data.createdAt is number;
+    }
+
+    function isValidCall(data) {
+      return hasOnlyAllowedFields(['table', 'status', 'createdAt']) &&
+             data.table is string && data.table.size() > 0 && data.table.size() < 20 &&
+             data.status in ['active', 'resolved'] &&
+             data.createdAt is number;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    
+    match /menu/{menuId} {
+      allow read: if true;
+      allow create, update: if isValidMenuItem(request.resource.data);
+      allow delete: if true;
+    }
+
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create, update: if isValidOrder(request.resource.data);
+      allow delete: if true;
+    }
+
+    match /calls/{callId} {
+      allow read: if true;
+      allow create, update: if isValidCall(request.resource.data);
+      allow delete: if true;
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+  }
+}

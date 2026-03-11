@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "A food or drink item on the menu.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" }
+      },
+      "required": ["name", "category", "price", "image"]
+    },
+    "CartItem": {
+      "title": "CartItem",
+      "description": "An item in the cart.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "quantity": { "type": "number" },
+        "cartItemId": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "quantity", "cartItemId"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order.",
+      "type": "object",
+      "properties": {
+        "table": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/entities/CartItem" }
+        },
+        "total": { "type": "number" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "preparing", "ready", "delivered"]
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["cash", "card", "pos"]
+        },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["table", "items", "total", "status", "createdAt"]
+    },
+    "WaiterCall": {
+      "title": "WaiterCall",
+      "description": "A request for a waiter from a table.",
+      "type": "object",
+      "properties": {
+        "table": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "resolved"]
+        },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["table", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile with roles.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": {
+          "type": "string",
+          "enum": ["supervisor", "kitchen", "customer"]
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "menu/{menuId}": {
+      "schema": { "$ref": "#/entities/MenuItem" },
+      "description": "The restaurant menu items."
+    },
+    "orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer orders."
+    },
+    "calls/{callId}": {
+      "schema": { "$ref": "#/entities/WaiterCall" },
+      "description": "Waiter calls from tables."
+    },
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User roles and profiles."
+    }
+  }
+}

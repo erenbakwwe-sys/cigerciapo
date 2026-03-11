@@ -1,0 +1,21 @@
+{
+  "name": "Ciğerci Apo Samsun",
+  "short_name": "Ciğerci Apo",
+  "description": "Geleneksel Lezzetin Modern Deneyimi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#b91c1c",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/cigerci/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/cigerci/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

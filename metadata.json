@@ -1,0 +1,5 @@
+{
+  "name": "Ciğerci Apo Samsun",
+  "description": "Smart Restaurant Suite (V3) - Gelişmiş Dijital Dönüşüm Ekosistemi",
+  "requestFramePermissions": ["camera"]
+}
