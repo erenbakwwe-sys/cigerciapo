@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock } from 'lucide-react';
+import { Lock, ArrowLeft } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { toast } from 'sonner';
+import { motion } from 'motion/react';
 
 export const AdminLogin = () => {
   const [username, setUsername] = useState('');
@@ -38,12 +39,30 @@ export const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-2xl">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 font-sans relative">
+      <button 
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 flex items-center gap-2 text-zinc-400 hover:text-white transition-colors bg-zinc-900/50 hover:bg-zinc-800 px-4 py-2 rounded-xl backdrop-blur-sm border border-zinc-800/50"
+      >
+        <ArrowLeft size={20} />
+        <span>Ana Sayfa</span>
+      </button>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-2xl"
+      >
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-red-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-red-900/50">
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="w-16 h-16 bg-red-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-red-900/50"
+          >
             <Lock className="text-white" size={32} />
-          </div>
+          </motion.div>
           <h1 className="text-2xl font-bold text-yellow-500 tracking-tight">Yönetim Paneli</h1>
           <p className="text-zinc-400 text-sm mt-1">Ciğerci Apo Samsun</p>
         </div>
@@ -71,20 +90,17 @@ export const AdminLogin = () => {
               required
             />
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isLoading}
             className="w-full bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold text-lg py-3 rounded-xl transition-colors mt-6 disabled:opacity-50"
           >
             {isLoading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
-          </button>
+          </motion.button>
         </form>
-        
-        <div className="mt-6 text-center text-xs text-zinc-600">
-          <p>Süpervizör: apo55 / samsun55</p>
-          <p>Mutfak: usta / ciger123</p>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, CreditCard, ScanLine, CheckCircle2, Users } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { formatCurrency } from '../../utils/format';
@@ -88,8 +88,27 @@ export const Checkout = () => {
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8"
+    >
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-zinc-100">Sepetim</h1>
       </div>
@@ -100,36 +119,52 @@ export const Checkout = () => {
         </div>
       ) : (
         <>
-          <div className="space-y-4">
-            {cart.map((item) => (
-              <motion.div 
-                layout
-                key={item.cartItemId}
-                className="flex items-center justify-between bg-zinc-900 p-4 rounded-2xl border border-zinc-800"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-4"
+          >
+            <AnimatePresence mode="popLayout">
+              {cart.map((item) => (
+                <motion.div 
+                  layout
+                  variants={itemVariants}
+                  exit={{ opacity: 0, x: -50, transition: { duration: 0.2 } }}
+                  key={item.cartItemId}
+                  className="flex items-center justify-between bg-zinc-900 p-4 rounded-2xl border border-zinc-800 shadow-sm hover:border-zinc-700 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-zinc-800">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-zinc-100">{item.name}</h3>
+                      <p className="text-sm text-zinc-400">{item.quantity} x {formatCurrency(item.price)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-zinc-100">{item.name}</h3>
-                    <p className="text-sm text-zinc-400">{item.quantity} x {formatCurrency(item.price)}</p>
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold text-yellow-500">{formatCurrency(item.price * item.quantity)}</span>
+                    <motion.button 
+                      whileHover={{ scale: 1.1, color: '#ef4444' }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => removeFromCart(item.cartItemId)}
+                      className="text-zinc-500 hover:text-red-500 p-2 transition-colors"
+                    >
+                      <Trash2 size={20} />
+                    </motion.button>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="font-bold text-yellow-500">{formatCurrency(item.price * item.quantity)}</span>
-                  <button 
-                    onClick={() => removeFromCart(item.cartItemId)}
-                    className="text-red-500 hover:text-red-400 p-2"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
 
-          <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-6 shadow-lg"
+          >
             
             {/* Bill Split Section */}
             <div className="space-y-3">
@@ -151,10 +186,14 @@ export const Checkout = () => {
                 </div>
               </div>
               {splitCount > 1 && (
-                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex justify-between items-center"
+                >
                   <span className="text-zinc-400 text-sm">Kişi Başı Düşen Tutar:</span>
                   <span className="font-bold text-yellow-500">{formatCurrency(splitTotal)}</span>
-                </div>
+                </motion.div>
               )}
             </div>
 
@@ -262,16 +301,18 @@ export const Checkout = () => {
               <span className="text-2xl font-bold text-yellow-500">{formatCurrency(total)}</span>
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handlePlaceOrder}
               className="w-full bg-red-700 hover:bg-red-600 text-white font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-[0_0_20px_rgba(185,28,28,0.3)]"
             >
               <CheckCircle2 size={24} />
               {splitCount > 1 ? `${formatCurrency(splitTotal)} Öde ve Siparişi Onayla` : 'Siparişi Onayla'}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 };

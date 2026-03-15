@@ -19,18 +19,41 @@ export const AdminDashboard = () => {
     { label: 'Aktif Çağrı', value: activeCalls, icon: <Users size={24} className="text-red-500" /> },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8"
+    >
       <h1 className="text-3xl font-bold text-zinc-100">Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex items-center gap-4"
+            variants={itemVariants}
+            whileHover={{ y: -5, scale: 1.02 }}
+            className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="p-4 bg-zinc-950 rounded-xl border border-zinc-800">
               {stat.icon}
@@ -41,9 +64,14 @@ export const AdminDashboard = () => {
             </div>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm"
+      >
         <h2 className="text-xl font-bold text-zinc-100 mb-4">Son Siparişler</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -56,9 +84,17 @@ export const AdminDashboard = () => {
                 <th className="pb-3 font-medium">Zaman</th>
               </tr>
             </thead>
-            <tbody>
-              {orders.slice(0, 5).map(order => (
-                <tr key={order.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
+            <motion.tbody
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+            >
+              {orders.slice(0, 5).map((order, i) => (
+                <motion.tr 
+                  variants={itemVariants}
+                  key={order.id} 
+                  className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors"
+                >
                   <td className="py-4 font-medium text-zinc-200">Masa {order.table}</td>
                   <td className="py-4 text-yellow-500 font-medium">{formatCurrency(order.total)}</td>
                   <td className="py-4 text-zinc-400 text-sm">
@@ -77,17 +113,17 @@ export const AdminDashboard = () => {
                   <td className="py-4 text-zinc-400 text-sm">
                     {new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                   </td>
-                </tr>
+                </motion.tr>
               ))}
               {orders.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-zinc-500">Henüz sipariş yok.</td>
                 </tr>
               )}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Bell, CheckCircle2, Clock } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { toast } from 'sonner';
@@ -15,8 +15,28 @@ export const Calls = () => {
     toast.success(`Masa ${table} çağrısı yanıtlandı.`);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 20 },
+    show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } }
+  };
+
   return (
-    <div className="space-y-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8"
+    >
       <h1 className="text-3xl font-bold text-zinc-100">Garson Çağrıları</h1>
 
       <div className="space-y-6">
@@ -26,48 +46,68 @@ export const Calls = () => {
         </h2>
 
         {activeCalls.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center text-zinc-500">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center text-zinc-500"
+          >
             Şu an bekleyen çağrı bulunmuyor.
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeCalls.map(call => {
-              const elapsedMinutes = Math.floor((Date.now() - call.createdAt) / 60000);
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {activeCalls.map(call => {
+                const elapsedMinutes = Math.floor((Date.now() - call.createdAt) / 60000);
 
-              return (
-                <motion.div
-                  layout
-                  key={call.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="border-2 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 transition-colors bg-red-950/30 border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)] animate-pulse"
-                >
-                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold bg-red-600 text-white">
-                    {call.table}
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold text-zinc-100">Masa {call.table}</h3>
-                    <p className="flex items-center justify-center gap-1 text-sm mt-1 text-red-400 font-bold">
-                      <Clock size={14} />
-                      {elapsedMinutes} dk önce
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleResolve(call.id, call.table)}
-                    className="mt-2 w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border border-zinc-700 hover:border-zinc-600"
+                return (
+                  <motion.div
+                    layout
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                    key={call.id}
+                    className="border-2 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 transition-colors bg-red-950/30 border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)] animate-pulse"
                   >
-                    <CheckCircle2 size={20} className="text-green-500" />
-                    Hizmet Verildi
-                  </button>
-                </motion.div>
-              );
-            })}
-          </div>
+                    <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold bg-red-600 text-white shadow-inner">
+                      {call.table}
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-zinc-100">Masa {call.table}</h3>
+                      <p className="flex items-center justify-center gap-1 text-sm mt-1 text-red-400 font-bold">
+                        <Clock size={14} />
+                        {elapsedMinutes} dk önce
+                      </p>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleResolve(call.id, call.table)}
+                      className="mt-2 w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors border border-zinc-700 hover:border-zinc-600 shadow-sm"
+                    >
+                      <CheckCircle2 size={20} className="text-green-500" />
+                      Hizmet Verildi
+                    </motion.button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
 
       {resolvedCalls.length > 0 && (
-        <div className="space-y-6 pt-8 border-t border-zinc-800">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-6 pt-8 border-t border-zinc-800"
+        >
           <h2 className="text-xl font-bold text-zinc-400">Son Yanıtlananlar</h2>
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
             <table className="w-full text-left border-collapse">
@@ -78,9 +118,17 @@ export const Calls = () => {
                   <th className="p-4 font-medium">Durum</th>
                 </tr>
               </thead>
-              <tbody>
+              <motion.tbody
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+              >
                 {resolvedCalls.map(call => (
-                  <tr key={call.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
+                  <motion.tr 
+                    variants={itemVariants}
+                    key={call.id} 
+                    className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors"
+                  >
                     <td className="p-4 font-medium text-zinc-300">Masa {call.table}</td>
                     <td className="p-4 text-zinc-500 text-sm">
                       {new Date(call.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
@@ -90,13 +138,13 @@ export const Calls = () => {
                         <CheckCircle2 size={12} /> Yanıtlandı
                       </span>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
-              </tbody>
+              </motion.tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
