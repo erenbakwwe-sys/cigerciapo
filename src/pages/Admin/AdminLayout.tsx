@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, UtensilsCrossed, Bell, ListOrdered, LogOut, QrCode, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, UtensilsCrossed, Bell, ListOrdered, LogOut, QrCode, ArrowLeft, History as HistoryIcon, Wallet } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -23,6 +23,8 @@ export const AdminLayout = () => {
     { path: '/admin/menu', icon: <UtensilsCrossed size={20} />, label: 'Menü Yönetimi', roles: ['supervisor'] },
     { path: '/admin/tables', icon: <QrCode size={20} />, label: 'Masa & QR', roles: ['supervisor'] },
     { path: '/admin/calls', icon: <Bell size={20} />, label: 'Çağrılar', roles: ['supervisor', 'kitchen'] },
+    { path: '/admin/history', icon: <HistoryIcon size={20} />, label: 'Geçmiş', roles: ['supervisor'] },
+    { path: '/admin/finance', icon: <Wallet size={20} />, label: 'Finans', roles: ['supervisor'] },
   ];
 
   const activeNavItems = navItems.filter(item => item.roles.includes(user.role));

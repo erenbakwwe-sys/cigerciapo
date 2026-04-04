@@ -17,6 +17,8 @@ import { MenuEditor } from './pages/Admin/MenuEditor';
 import { Orders } from './pages/Admin/Orders';
 import { Calls } from './pages/Admin/Calls';
 import { Tables } from './pages/Admin/Tables';
+import { History } from './pages/Admin/History';
+import { Finance } from './pages/Admin/Finance';
 
 export default function App() {
   return (
@@ -40,6 +42,8 @@ export default function App() {
             <Route path="orders" element={<Orders />} />
             <Route path="calls" element={<Calls />} />
             <Route path="tables" element={<Tables />} />
+            <Route path="history" element={<History />} />
+            <Route path="finance" element={<Finance />} />
           </Route>
 
           {/* Fallback */}

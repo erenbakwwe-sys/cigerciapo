@@ -425,6 +425,17 @@ export const MenuEditor = () => {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         <AnimatePresence mode="popLayout">
+          {menu.length === 0 && !isAdding && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              className="col-span-full flex flex-col items-center justify-center py-20 text-zinc-500"
+            >
+              <Database size={48} className="mb-4 opacity-20" />
+              <p className="text-lg">Menüde hiç ürün bulunmuyor.</p>
+              <p className="text-sm">Sağ üstteki "Menüyü Sıfırla" butonuna tıklayarak varsayılan menüyü yükleyebilir veya "Yeni Ürün" diyerek kendiniz ekleyebilirsiniz.</p>
+            </motion.div>
+          )}
           {menu.map(item => (
             <motion.div 
               layout 
