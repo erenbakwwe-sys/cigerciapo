@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, CreditCard, ScanLine, CheckCircle2, Users, Info } from 'lucide-react';
+import { Trash2, CreditCard, ScanLine, CheckCircle2, Users, Info, Star } from 'lucide-react';
 import { useAppContext, Order } from '../../context/AppContext';
 import { formatCurrency } from '../../utils/format';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ export const Checkout = () => {
   const [cardData, setCardData] = useState({ number: '', expiry: '', cvv: '' });
   const [scannedImage, setScannedImage] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   
   // Shared Order State (from Firestore)
   const [sharedOrder, setSharedOrder] = useState<Order | null>(null);
@@ -136,8 +137,8 @@ export const Checkout = () => {
 
         if (isComplete) {
           setIsPlacingOrder(false);
+          setIsSuccess(true);
           toast.success('Tüm ödemeler tamamlandı! Siparişiniz mutfağa iletildi.');
-          navigate('/');
         } else {
           setIsPlacingOrder(false);
           toast.success(`${formatCurrency(amountToPay)} ödendi. Kalan: ${formatCurrency(total - newPaidAmount)}`);
@@ -154,6 +155,53 @@ export const Checkout = () => {
       }
     }, 1500);
   };
+
+  if (isSuccess) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center"
+      >
+        <div className="w-24 h-24 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-4">
+          <CheckCircle2 size={48} />
+        </div>
+        <h2 className="text-3xl font-bold text-zinc-100">Siparişiniz Alındı!</h2>
+        <p className="text-zinc-400 max-w-md">
+          Siparişiniz başarıyla mutfağa iletildi. Bizi tercih ettiğiniz için teşekkür ederiz, afiyet olsun!
+        </p>
+
+        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl mt-8 max-w-md w-full space-y-4">
+          <div className="flex justify-center text-yellow-500 mb-2">
+            <Star size={32} fill="currentColor" />
+            <Star size={32} fill="currentColor" />
+            <Star size={32} fill="currentColor" />
+            <Star size={32} fill="currentColor" />
+            <Star size={32} fill="currentColor" />
+          </div>
+          <h3 className="text-xl font-bold text-zinc-100">Deneyiminizi bizimle paylaşmak ister misiniz?</h3>
+          <p className="text-sm text-zinc-400">Görüşleriniz bizim için çok değerli.</p>
+          
+          <div className="flex flex-col gap-3 pt-4">
+            <a 
+              href="https://search.google.com/local/writereview?placeid=ChIJb-49LBF_iEAR027RVQaYf-o"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              Evet, Değerlendir
+            </a>
+            <button 
+              onClick={() => navigate('/')}
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 rounded-xl transition-colors"
+            >
+              Ana Sayfaya Dön
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   if (isPlacingOrder) {
     return (
