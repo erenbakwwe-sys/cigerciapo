@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ShoppingCart, Bell, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, Bell, ArrowLeft, Info } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
+import { db } from '../../firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { formatCurrency } from '../../utils/format';
 
 export const CustomerLayout = () => {
   const { cart, callWaiter } = useAppContext();
@@ -11,6 +14,31 @@ export const CustomerLayout = () => {
   const location = useLocation();
   const { tableId } = useParams();
   const tableNumber = tableId || 'Misafir';
+
+  const [hasPendingPayment, setHasPendingPayment] = useState(false);
+  const [pendingAmount, setPendingAmount] = useState(0);
+
+  useEffect(() => {
+    if (tableNumber === 'Misafir') return;
+    
+    const q = query(
+      collection(db, 'orders'), 
+      where('table', '==', tableNumber), 
+      where('status', '==', 'awaiting_payment')
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const orderData = snapshot.docs[0].data();
+        setHasPendingPayment(true);
+        setPendingAmount(orderData.total - (orderData.paidAmount || 0));
+      } else {
+        setHasPendingPayment(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [tableNumber]);
 
   const handleCallWaiter = () => {
     if (tableNumber === 'Misafir') {
@@ -60,6 +88,34 @@ export const CustomerLayout = () => {
           </motion.button>
         </div>
       </motion.header>
+
+      <AnimatePresence>
+        {hasPendingPayment && !isCheckout && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-blue-500/10 border-b border-blue-500/30 overflow-hidden"
+          >
+            <div className="max-w-4xl mx-auto p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Info className="text-blue-500 shrink-0" size={20} />
+                <div>
+                  <p className="text-blue-400 font-bold text-sm">Ödenmeyi Bekleyen Hesap Var</p>
+                  <p className="text-blue-300/80 text-xs mt-0.5">Kalan Tutar: {formatCurrency(pendingAmount)}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => navigate(tableId ? `/menu/${tableId}/checkout` : '/menu/checkout')}
+                className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+              >
+                Ödemeye Katıl
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <main className="p-4 max-w-4xl mx-auto relative">
         <AnimatePresence mode="wait">
           <motion.div
@@ -76,7 +132,7 @@ export const CustomerLayout = () => {
 
       {/* Sticky Bottom Bar for Mobile-first feel */}
       <AnimatePresence>
-        {!isCheckout && cartItemCount > 0 && (
+        {!isCheckout && (cartItemCount > 0 || hasPendingPayment) && (
           <motion.div 
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -89,27 +145,34 @@ export const CustomerLayout = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate(tableId ? `/menu/${tableId}/checkout` : '/menu/checkout')}
-                className="w-full bg-red-700 hover:bg-red-600 text-white font-bold text-lg py-4 rounded-2xl flex items-center justify-between px-6 shadow-[0_0_30px_rgba(185,28,28,0.3)] transition-all"
+                className={`w-full text-white font-bold text-lg py-4 rounded-2xl flex items-center justify-between px-6 transition-all ${
+                  hasPendingPayment && cartItemCount === 0 
+                    ? 'bg-blue-600 hover:bg-blue-500 shadow-[0_0_30px_rgba(37,99,235,0.3)]' 
+                    : 'bg-red-700 hover:bg-red-600 shadow-[0_0_30px_rgba(185,28,28,0.3)]'
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <ShoppingCart size={24} />
-                    <motion.span 
-                      key={cartItemCount}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                      className="absolute -top-2 -right-2 bg-yellow-500 text-zinc-950 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full"
-                    >
-                      {cartItemCount}
-                    </motion.span>
+                    {cartItemCount > 0 && (
+                      <motion.span 
+                        key={cartItemCount}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                        className="absolute -top-2 -right-2 bg-yellow-500 text-zinc-950 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full"
+                      >
+                        {cartItemCount}
+                      </motion.span>
+                    )}
                   </div>
-                  <span>Sepeti Görüntüle</span>
+                  <span>{hasPendingPayment && cartItemCount === 0 ? 'Ödemeye Katıl' : 'Sepeti Görüntüle'}</span>
                 </div>
                 <span>
-                  {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(
-                    cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-                  )}
+                  {hasPendingPayment && cartItemCount === 0 
+                    ? formatCurrency(pendingAmount)
+                    : formatCurrency(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0))
+                  }
                 </span>
               </motion.button>
             </div>

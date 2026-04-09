@@ -32,7 +32,7 @@ export type Order = {
   items: CartItem[];
   total: number;
   status: 'pending' | 'preparing' | 'ready' | 'delivered';
-  paymentMethod?: 'cash' | 'card' | 'pos';
+  paymentMethod?: 'cash' | 'card' | 'pos' | 'mixed';
   createdAt: number;
 };
 
@@ -60,7 +60,7 @@ type AppContextType = {
   clearCart: () => void;
   
   orders: Order[];
-  placeOrder: (table: string, paymentMethod: 'cash' | 'card' | 'pos') => Promise<void>;
+  placeOrder: (table: string, paymentMethod: 'cash' | 'card' | 'pos' | 'mixed') => Promise<void>;
   updateOrderStatus: (id: string, status: Order['status']) => Promise<void>;
   
   calls: WaiterCall[];
@@ -239,7 +239,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const clearCart = () => setCart([]);
 
   // Order Actions
-  const placeOrder = async (table: string, paymentMethod: 'cash' | 'card' | 'pos') => {
+  const placeOrder = async (table: string, paymentMethod: 'cash' | 'card' | 'pos' | 'mixed') => {
     if (cart.length === 0) return;
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const newId = generateId();

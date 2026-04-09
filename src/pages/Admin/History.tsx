@@ -72,7 +72,7 @@ export const History = () => {
                   <div className="text-right">
                     <p className="text-2xl font-bold text-zinc-100">{formatCurrency(order.total)}</p>
                     <p className="text-sm text-zinc-400">
-                      Ödeme: {order.paymentMethod === 'cash' ? 'Nakit' : order.paymentMethod === 'card' ? 'Kredi Kartı' : 'POS'}
+                      Ödeme: {order.paymentMethod === 'cash' ? 'Nakit' : order.paymentMethod === 'card' ? 'Kredi Kartı' : order.paymentMethod === 'mixed' ? 'Parçalı Ödeme' : 'POS'}
                     </p>
                   </div>
                 </div>

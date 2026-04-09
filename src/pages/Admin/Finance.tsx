@@ -14,11 +14,13 @@ export const Finance = () => {
     const totalRevenue = deliveredOrders.reduce((sum, order) => sum + order.total, 0);
     const cashRevenue = deliveredOrders.filter(o => o.paymentMethod === 'cash').reduce((sum, order) => sum + order.total, 0);
     const cardRevenue = deliveredOrders.filter(o => o.paymentMethod === 'card' || o.paymentMethod === 'pos').reduce((sum, order) => sum + order.total, 0);
+    const mixedRevenue = deliveredOrders.filter(o => o.paymentMethod === 'mixed').reduce((sum, order) => sum + order.total, 0);
     
     return {
       totalRevenue,
       cashRevenue,
       cardRevenue,
+      mixedRevenue,
       totalOrders: deliveredOrders.length
     };
   }, [deliveredOrders]);
@@ -79,7 +81,8 @@ export const Finance = () => {
             </div>
             <h3 className="text-zinc-400 font-medium">Kart/POS Geliri</h3>
           </div>
-          <p className="text-3xl font-bold text-zinc-100">{formatCurrency(stats.cardRevenue)}</p>
+          <p className="text-3xl font-bold text-zinc-100">{formatCurrency(stats.cardRevenue + stats.mixedRevenue)}</p>
+          {stats.mixedRevenue > 0 && <p className="text-xs text-zinc-500 mt-1">Parçalı ödemeler dahil</p>}
         </motion.div>
 
         <motion.div variants={itemVariants} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
@@ -107,9 +110,11 @@ export const Finance = () => {
               <div key={order.id} className="flex items-center justify-between p-4 bg-zinc-950 rounded-2xl border border-zinc-800/50">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    order.paymentMethod === 'cash' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-blue-500/10 text-blue-500'
+                    order.paymentMethod === 'cash' ? 'bg-yellow-500/10 text-yellow-500' : 
+                    order.paymentMethod === 'mixed' ? 'bg-purple-500/10 text-purple-500' : 'bg-blue-500/10 text-blue-500'
                   }`}>
-                    {order.paymentMethod === 'cash' ? <Banknote size={20} /> : <CreditCard size={20} />}
+                    {order.paymentMethod === 'cash' ? <Banknote size={20} /> : 
+                     order.paymentMethod === 'mixed' ? <Receipt size={20} /> : <CreditCard size={20} />}
                   </div>
                   <div>
                     <p className="font-bold text-zinc-200">Masa {order.table}</p>
@@ -118,7 +123,10 @@ export const Finance = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-green-500">+{formatCurrency(order.total)}</p>
-                  <p className="text-xs text-zinc-500">{order.paymentMethod === 'cash' ? 'Nakit' : 'Kredi Kartı'}</p>
+                  <p className="text-xs text-zinc-500">
+                    {order.paymentMethod === 'cash' ? 'Nakit' : 
+                     order.paymentMethod === 'mixed' ? 'Parçalı Ödeme' : 'Kredi Kartı/POS'}
+                  </p>
                 </div>
               </div>
             ))
