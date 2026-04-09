@@ -36,17 +36,19 @@ export const Checkout = () => {
     
     const q = query(
       collection(db, 'orders'), 
-      where('table', '==', tableNumber), 
-      where('status', '==', 'awaiting_payment')
+      where('table', '==', tableNumber)
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const orderData = snapshot.docs[0].data() as Order;
-        setSharedOrder({ ...orderData, id: snapshot.docs[0].id });
+      const activeOrder = snapshot.docs.find(doc => doc.data().status === 'awaiting_payment');
+      if (activeOrder) {
+        const orderData = activeOrder.data() as Order;
+        setSharedOrder({ ...orderData, id: activeOrder.id });
       } else {
         setSharedOrder(null);
       }
+    }, (error) => {
+      console.error("Error fetching shared order:", error);
     });
 
     return () => unsubscribe();

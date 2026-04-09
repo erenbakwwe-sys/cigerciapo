@@ -99,6 +99,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : null;
   });
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const ordersRef = React.useRef<Order[]>([]);
 
   // Sync cart and user to localStorage (local state)
   useEffect(() => { localStorage.setItem('apo_cart', JSON.stringify(cart)); }, [cart]);
@@ -144,19 +145,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         if (!initialOrdersLoad) {
           snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-              const order = change.doc.data() as Order;
-              toast.success(`Yeni Sipariş Geldi! (Masa: ${order.table})`, {
-                duration: 5000,
-                icon: '🔔',
-                style: { background: '#ef4444', color: '#fff', border: 'none' }
-              });
-              const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-              audio.play().catch(e => console.log('Audio play failed:', e));
+            const order = change.doc.data() as Order;
+            
+            // Trigger notification for new pending orders, or orders that just became pending
+            if (
+              (change.type === 'added' && order.status === 'pending') ||
+              (change.type === 'modified' && order.status === 'pending')
+            ) {
+              const wasAlreadyPending = ordersRef.current.some(o => o.id === order.id && o.status === 'pending');
+              
+              if (!wasAlreadyPending) {
+                toast.success(`Yeni Sipariş Geldi! (Masa: ${order.table})`, {
+                  duration: 5000,
+                  icon: '🔔',
+                  style: { background: '#ef4444', color: '#fff', border: 'none' }
+                });
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                audio.play().catch(e => console.log('Audio play failed:', e));
+              }
             }
           });
         }
         initialOrdersLoad = false;
+        ordersRef.current = ordersData;
       }, (error) => handleFirestoreError(error, 'get', 'orders'));
 
       let initialCallsLoad = true;

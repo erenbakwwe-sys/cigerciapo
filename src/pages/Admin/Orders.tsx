@@ -37,7 +37,7 @@ export const Orders = () => {
     toast.success(`Sipariş durumu güncellendi: ${nextStatus.toUpperCase()}`);
   };
 
-  const activeOrders = orders.filter(o => o.status !== 'delivered');
+  const activeOrders = orders.filter(o => o.status !== 'delivered' && o.status !== 'awaiting_payment');
   const pastOrders = orders.filter(o => o.status === 'delivered').slice(0, 10);
 
   const getStatusColor = (status: Order['status']) => {

@@ -23,18 +23,20 @@ export const CustomerLayout = () => {
     
     const q = query(
       collection(db, 'orders'), 
-      where('table', '==', tableNumber), 
-      where('status', '==', 'awaiting_payment')
+      where('table', '==', tableNumber)
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const orderData = snapshot.docs[0].data();
+      const activeOrder = snapshot.docs.find(doc => doc.data().status === 'awaiting_payment');
+      if (activeOrder) {
+        const orderData = activeOrder.data();
         setHasPendingPayment(true);
         setPendingAmount(orderData.total - (orderData.paidAmount || 0));
       } else {
         setHasPendingPayment(false);
       }
+    }, (error) => {
+      console.error("Error fetching pending payment:", error);
     });
 
     return () => unsubscribe();
