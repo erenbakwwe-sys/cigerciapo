@@ -52,12 +52,14 @@ service cloud.firestore {
     }
 
     function isValidOrder(data) {
-      return hasOnlyAllowedFields(['table', 'items', 'total', 'status', 'createdAt', 'paymentMethod']) &&
+      return hasOnlyAllowedFields(['table', 'items', 'total', 'status', 'createdAt', 'paymentMethod', 'paidAmount', 'payments']) &&
              data.table is string && data.table.size() > 0 && data.table.size() < 20 &&
              data.items is list && data.items.size() > 0 && data.items.size() < 50 &&
              data.total is number && data.total >= 0 &&
-             data.status in ['pending', 'preparing', 'ready', 'delivered'] &&
-             (!('paymentMethod' in data) || data.paymentMethod in ['cash', 'card', 'pos']) &&
+             data.status in ['pending', 'preparing', 'ready', 'delivered', 'awaiting_payment'] &&
+             (!('paymentMethod' in data) || data.paymentMethod in ['cash', 'card', 'pos', 'mixed']) &&
+             (!('paidAmount' in data) || data.paidAmount is number) &&
+             (!('payments' in data) || data.payments is list) &&
              data.createdAt is number;
     }
 
